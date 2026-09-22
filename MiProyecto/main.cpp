@@ -17,13 +17,13 @@ int main()
 	Button playButton(300, 250, 200, 50, "Jugar", myFont, sf::Color::Blue);
 	Board board;
 	GameStates currentState = MENU;
+	Piece piezaActual(0);
 	while (window.isOpen())
 	{
 		sf::Event event;
-		while (window.pollEvent(event))
-		{
+		while (window.pollEvent(event)) {
 			if (event.type == sf::Event::Closed)
-				window.close();
+				window.close();			
 		}
 		
 		if(currentState == MENU){

@@ -20,6 +20,10 @@ void Piece::moveDown(){
 	y++;
 }
 
+void Piece::moveUp(){
+	y--;
+}
+
 int Piece::getBlock(int row, int col){
 	return shape[currentRotation][row][col];
 }
@@ -34,6 +38,26 @@ int Piece::getY(){
 
 sf::Color Piece::getColor(){
 	return color;
+}
+
+int Piece::getType() {
+	return type;
+}
+
+void Piece::draw(sf::RenderWindow& window) {
+	float offsetX = 250.f;
+	for(int r = 0; r < 4; r++){
+		for(int c = 0; c < 4; c++){
+			if(getBlock(r, c) != 0){
+				sf::RectangleShape block(sf::Vector2f(30.f, 30.f));
+				block.setPosition(sf::Vector2f((x + c) * 30.f + offsetX, ((y + r) * 30.f) - 30.f)); 
+				block.setFillColor(color);
+				block.setOutlineThickness(1.f);
+				block.setOutlineColor(sf::Color(50, 50, 50));
+				window.draw(block);
+			}
+		}
+	}
 }
 
 Piece::Piece(int pieceType) {

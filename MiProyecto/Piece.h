@@ -17,10 +17,13 @@ public:
 	void moveLeft();
 	void moveRight();
 	void moveDown();
+	void moveUp();
 	int getBlock(int row, int col);
 	int getX();
 	int getY();
 	sf::Color getColor();
+	void draw(sf::RenderWindow& window);
+	int getType();
 };
 
 #endif
