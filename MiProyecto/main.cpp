@@ -1,14 +1,16 @@
 #include <SFML/Graphics.hpp>
 #include "Button.h"
 #include "Board.h"
+#include <cstdlib> 
+#include <ctime>
 
 enum GameStates{   
 	MENU,
 	GAME
 };
 
-int main()
-{
+int main(){
+	srand(time(NULL));
 	sf::RenderWindow window(sf::VideoMode(800, 600), "Main");
 	sf::Font myFont;
 	if (!myFont.loadFromFile("C:/Windows/Fonts/arial.ttf")) {
