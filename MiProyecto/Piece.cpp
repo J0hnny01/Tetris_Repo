@@ -8,6 +8,12 @@ void Piece::rotateLeft(){
 	currentRotation = (currentRotation + 3) % 4;
 }
 
+void Piece::unRotate() {
+	rotateLeft();
+	rotateLeft();
+	rotateLeft();
+}
+
 void Piece::moveLeft(){
 	x--;
 }

@@ -14,6 +14,7 @@ public:
 	Piece(int pieceType);
 	void rotateLeft();
 	void rotateRight();
+	void unRotate();
 	void moveLeft();
 	void moveRight();
 	void moveDown();

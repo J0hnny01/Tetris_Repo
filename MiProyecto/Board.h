@@ -19,7 +19,8 @@ public:
 	void draw(sf::RenderWindow& window);
 	bool checkCollision(Piece& piece);
 	void lockPiece(Piece& piece);
-	int clearLines(); 
+	int clearLines();
+	void getSnapshot(int snapshot[20][10]);
 };
 
 #endif

@@ -16,21 +16,18 @@ Board::Board() {
 	}
 }
 
-bool Board::checkCollision(Piece& piece) {  //PRUEBA. NO DEFINITIVO
-	for (int i = 0; i < 4; i++) {
-		for (int j = 0; j < 4; j++) {
-			if (piece.getBlock(i, j) != 0) {
-				int globalX = piece.getX() + j;
-				int globalY = piece.getY() + i;
-				if (globalX < 0 || globalX >= 10) {
-					return true;
-				}
-				if (globalY >= 21) {
-					return true;
+bool Board::checkCollision(Piece& piece) {
+	for (int r = 0; r < 4; r++) {
+		for (int c = 0; c < 4; c++) {
+			if (piece.getBlock(r, c) != 0) {
+				int globalX = piece.getX() + c;
+				int globalY = piece.getY() + r;
+				if (globalY >= 20 || globalX < 0 || globalX >= 10) {
+					return true; 
 				}
 				if (globalY >= 0) {
 					Node* targetRow = head;
-					for (int k = 0; k < globalY; k++) {
+					for (int i = 0; i < globalY; i++) {
 						if (targetRow != nullptr) {
 							targetRow = targetRow->next;
 						}
@@ -65,24 +62,70 @@ void Board::lockPiece(Piece& piece) {
 			}
 		}
 	}
-}     //NO FUNCIONA AUN
+}     
 
-int clearLines(){return 0;}//TODO
+int Board::clearLines() {
+	int lineasBorradas = 0;
+	Node* current = head;
+	Node* prev = nullptr;	
+	while (current != nullptr) {
+		bool isFull = true;
+		for (int c = 0; c < 10; c++) {
+			if (current->cells[c] == 0) {
+				isFull = false;
+				break;
+			}
+		}
+		if (isFull) {
+			Node* nodoABorrar = current;
+			if (prev == nullptr) { 
+				head = current->next;
+				current = head;
+			} else {
+				prev->next = current->next;
+				current = current->next; 
+			}
+			delete nodoABorrar; 
+			Node* nuevaFilaArriba = new Node(); 
+			nuevaFilaArriba->next = head;
+			head = nuevaFilaArriba;			
+			lineasBorradas++;
+		} else {
+			prev = current;
+			current = current->next;
+		}
+	}
+	return lineasBorradas; 
+}
 
 void Board::draw(sf::RenderWindow& window) {
 	Node* temp = head;
 	int j = 0;
 	float offsetX = 250.f;
+	float cellSize = 30.f; 
+	
 	while(temp){
 		for(int i = 0; i < 10; i++){
 			if (temp->cells[i] != 0) {
-				sf::RectangleShape block(sf::Vector2f(40.f, 40.f));
-				block.setPosition(sf::Vector2f(i * 40.f + offsetX, j * 40.f)) ;
-				block.setFillColor(sf::Color::Blue);
+				sf::RectangleShape block(sf::Vector2f(cellSize, cellSize));
+				block.setPosition(sf::Vector2f(i * cellSize + offsetX, j * cellSize));
+				int tipo = temp->cells[i] - 1; 
+				switch(tipo) {
+				case 0: block.setFillColor(sf::Color::Magenta); break;     
+				case 1: block.setFillColor(sf::Color::Cyan); break;        
+				case 2: block.setFillColor(sf::Color::Yellow); break;      
+				case 3: block.setFillColor(sf::Color::Green); break;       
+				case 4: block.setFillColor(sf::Color::Red); break;         
+				case 5: block.setFillColor(sf::Color::Blue); break;        
+				case 6: block.setFillColor(sf::Color(255, 165, 0)); break; 
+				default: block.setFillColor(sf::Color::White); break;
+				}
+				block.setOutlineThickness(-1.f); 
+				block.setOutlineColor(sf::Color::Black);
 				window.draw(block);
-			}else{
-				sf::RectangleShape emptyCell(sf::Vector2f(30.f, 30.f));
-				emptyCell.setPosition(sf::Vector2f(i * 30.f + offsetX, j * 30.f));
+			} else {
+				sf::RectangleShape emptyCell(sf::Vector2f(cellSize, cellSize));
+				emptyCell.setPosition(sf::Vector2f(i * cellSize + offsetX, j * cellSize));
 				emptyCell.setFillColor(sf::Color::Transparent);
 				emptyCell.setOutlineThickness(1.f);
 				emptyCell.setOutlineColor(sf::Color(50, 50, 50)); 
@@ -93,3 +136,21 @@ void Board::draw(sf::RenderWindow& window) {
 		j++;
 	}
 }
+
+void Board::getSnapshot(int snapshot[20][10]) {
+	Node* current = head;	
+	for (int r = 0; r < 20; r++) {
+		if (current != nullptr) {
+			for (int c = 0; c < 10; c++) {
+				snapshot[r][c] = current->cells[c];
+			}
+			current = current->next;
+		} else {
+			for (int c = 0; c < 10; c++) {
+				snapshot[r][c] = 0;
+			}
+		}
+	}
+}
+
+
