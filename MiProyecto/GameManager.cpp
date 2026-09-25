@@ -21,6 +21,10 @@ bool GameManager::isGameOver(){
 	return gameOver;
 }
 
+int GameManager::getScore(){
+	return score;
+}
+
 void GameManager::updateGravity() {
 	if (gameOver) return;	
 	currentPiece.moveDown();
@@ -84,7 +88,7 @@ void GameManager::processInput(sf::Keyboard::Key key) {
 		updateGravity(); 
 	break;
 	
-	case sf::Keyboard::C: 
+	case sf::Keyboard::H: 
 		holdPiece();
 	break;
 	

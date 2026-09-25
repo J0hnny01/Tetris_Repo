@@ -28,6 +28,7 @@ public:
 	void updateGravity(); 
 	void draw(sf::RenderWindow& window, sf::Font& font, int seconds);
 	bool isGameOver(); 
+	int getScore();
 };
 
 #endif

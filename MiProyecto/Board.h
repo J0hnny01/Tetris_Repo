@@ -13,7 +13,6 @@ public:
 class Board {
 private:
 	Node* head;	
-	bool isRowFull(Node* row);	
 public:
 	Board();
 	void draw(sf::RenderWindow& window);
@@ -21,6 +20,7 @@ public:
 	void lockPiece(Piece& piece);
 	int clearLines();
 	void getSnapshot(int snapshot[20][10]);
+	bool isRowFull(Node* row);
 };
 
 #endif
