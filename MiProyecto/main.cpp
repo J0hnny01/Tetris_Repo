@@ -24,6 +24,7 @@ int main(){
 	Button scoreBoardButton(300, 330, 200, 50, "Puntajes", myFont, sf::Color::Red);
 	Button backAfterGameOverButton(300, 300, 200, 50, "Volver", myFont, sf::Color::Blue);
 	Button buttonBack(575, 50, 200, 50, "Volver", myFont, sf::Color::Blue);
+	Button continueButton(300, 250, 200, 50, "Continuar", myFont, sf::Color::Green);
 	std::string playerName = "";
 	sf::Text promptText("Ingresa tu nombre y presiona ENTER:", myFont, 24);
 	promptText.setPosition(200.f, 200.f);
@@ -46,6 +47,8 @@ int main(){
 	int secondsPlayed = 0;
 	bool scoreSaved = false;
 	bool autoPlayReplay = true;
+	bool isPaused = false;
+	float accumulatedTime = 0.f;
 	while (window.isOpen())
 	{
 		sf::Event event;
@@ -54,7 +57,15 @@ int main(){
 				window.close();		
 			}	
 			if (event.type == sf::Event::KeyPressed && currentState == GAME) {
-				gameManager->processInput(event.key.code);
+				if (event.key.code == sf::Keyboard::Enter) {
+					isPaused = !isPaused;
+					if (!isPaused) {
+						gameClock.restart();
+						totalTimeClock.restart();
+					}
+				} else if (!isPaused) {
+					gameManager->processInput(event.key.code);
+				}
 			}
 			else if(currentState == LOGIN && event.type == sf::Event::TextEntered){
 				if (event.text.unicode == 8 && playerName.length() > 0) {
@@ -110,7 +121,9 @@ int main(){
 				gameManager = new GameManager();
 				gameClock.restart();
 				totalTimeClock.restart(); 
-				secondsPlayed = 0;	
+				secondsPlayed = 0;
+				accumulatedTime = 0.f;
+				isPaused = false;
 			}else if(scoreBoardButton.isPressed(window)){
 				scoreManager.loadScores();
 				currentState = SCOREBOARD;
@@ -128,11 +141,21 @@ int main(){
 		}
 		else if (currentState == GAME) {
 			if (!gameManager->isGameOver()) {
-				if (gameClock.getElapsedTime().asSeconds() >= fallDelay) {
-					gameManager->updateGravity();
-					gameClock.restart();
+				if (!isPaused) {
+					accumulatedTime += totalTimeClock.restart().asSeconds();
+					if (gameClock.getElapsedTime().asSeconds() >= fallDelay) {
+						gameManager->updateGravity();
+						gameClock.restart();
+					}
+					secondsPlayed = static_cast<int>(accumulatedTime);
+				} else {
+					totalTimeClock.restart();
+					if (continueButton.isPressed(window)) {
+						isPaused = false;
+						gameClock.restart();
+						totalTimeClock.restart();
+					}
 				}
-				secondsPlayed = static_cast<int>(totalTimeClock.getElapsedTime().asSeconds());
 			}else {
 				if (!scoreSaved) {
 					std::string replayFile = scoreManager.registerScore(playerName, gameManager->getScore(), 2);
@@ -148,6 +171,8 @@ int main(){
 					scoreSaved = false;
 					delete gameManager;
 					gameManager = new GameManager();
+					accumulatedTime = 0.f;
+					isPaused = false;
 				}
 			}
 		}
@@ -169,6 +194,11 @@ int main(){
 			if(gameManager->isGameOver()){
 				backAfterGameOverButton.draw(window);
 				window.draw(gameOverText);
+			} else if (isPaused) {
+				sf::RectangleShape overlay(sf::Vector2f(800.f, 600.f));
+				overlay.setFillColor(sf::Color(0, 0, 0, 150));
+				window.draw(overlay);
+				continueButton.draw(window);
 			}
 		}else if (currentState == LOGIN) {
 			window.draw(promptText);
