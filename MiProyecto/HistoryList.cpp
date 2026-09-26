@@ -1,4 +1,5 @@
 #include "HistoryList.h"
+#include <fstream>
 
 StateNode::StateNode() {
 	pieceType = 0;
@@ -89,4 +90,51 @@ StateNode* HistoryList::getNextState() {
 		current = current->next;
 	}
 	return current;
+}
+
+void HistoryList::clear() {
+	StateNode* temp = head;
+	while (temp != nullptr) {
+		StateNode* nextNode = temp->next;
+		delete temp;
+		temp = nextNode;
+	}
+	head = nullptr;
+	tail = nullptr;
+	current = nullptr;
+}
+
+void HistoryList::exportToFile(std::string filename) {
+	std::ofstream file(filename);
+	if (!file.is_open()) return;
+	StateNode* temp = head;
+	while (temp != nullptr) {
+		file << temp->pieceType << " " << temp->pieceX << " " << temp->pieceY << "\n";
+		for (int r = 0; r < 20; r++) {
+			for (int c = 0; c < 10; c++) {
+				file << temp->boardSnapshot[r][c] << " ";
+			}
+			file << "\n";
+		}
+		temp = temp->next;
+	}
+	file.close();
+}
+
+void HistoryList::loadFromFile(std::string filename) {
+	clear(); 
+	std::ifstream file(filename);
+	if (!file.is_open()) return;
+	int pType, pX, pY;
+	while (file >> pType >> pX >> pY) {
+		int tempBoard[20][10];
+		for (int r = 0; r < 20; r++) {
+			for (int c = 0; c < 10; c++) {
+				file >> tempBoard[r][c];
+			}
+		}
+		saveState(pType, pX, pY, tempBoard); 
+	}
+	file.close();
+	current = head; 
 }

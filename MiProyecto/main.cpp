@@ -1,6 +1,7 @@
 #include <SFML/Graphics.hpp>
 #include "Button.h"
 #include "GameManager.h" 
+#include "ScoreManager.h"
 #include <cstdlib> 
 #include <ctime>
 
@@ -34,11 +35,13 @@ int main(){
 	gameOverText.setPosition(300.f, 50.f);
 	gameOverText.setFillColor(sf::Color::Red);
 	GameManager gameManager;
+	ScoreManager scoreManager("puntajes.txt");
 	sf::Clock gameClock;
 	sf::Clock totalTimeClock;
 	float fallDelay = 0.5f; 
 	GameStates currentState = MENU;
 	int secondsPlayed = 0;
+	bool scoreSaved = false;
 	while (window.isOpen())
 	{
 		sf::Event event;
@@ -71,6 +74,19 @@ int main(){
 				gameClock.restart();
 				totalTimeClock.restart(); 
 				secondsPlayed = 0;	
+			}else if(scoreBoardButton.isPressed(window)){
+				scoreManager.loadScores();
+				currentState = SCOREBOARD;
+			}
+		}
+		else if (currentState == SCOREBOARD) {
+			if (backAfterGameOverButton.isPressed(window)) {
+				currentState = MENU;
+			}
+		}
+		else if (currentState == SCOREBOARD) {
+			if (backAfterGameOverButton.isPressed(window)) {
+				currentState = MENU;
 			}
 		}
 		else if (currentState == GAME) {
@@ -80,11 +96,21 @@ int main(){
 					gameClock.restart();
 				}
 				secondsPlayed = static_cast<int>(totalTimeClock.getElapsedTime().asSeconds());
-			}else if (backAfterGameOverButton.isPressed(window)){
-				currentState = MENU;
-				playerName = "";
-				nameInputText.setString("");
-				gameManager = GameManager();
+			}else {
+				if (!scoreSaved) {
+					std::string replayFile = scoreManager.registerScore(playerName, gameManager.getScore(), 2);
+					if (replayFile != "") {
+						gameManager.exportHistory(replayFile);
+					}
+					scoreSaved = true;
+				}
+				if (backAfterGameOverButton.isPressed(window)){
+					currentState = MENU;
+					playerName = "";
+					nameInputText.setString("");
+					scoreSaved = false;
+					gameManager = GameManager();
+				}
 			}
 		}
 		window.clear(sf::Color::Black);
@@ -100,6 +126,17 @@ int main(){
 		}else if (currentState == LOGIN) {
 			window.draw(promptText);
 			window.draw(nameInputText);
+		}
+		else if (currentState == SCOREBOARD) {
+			window.draw(scoreboardTitle);
+			for (int i = 0; i < scoreManager.getScoreCount(); i++) {
+				PlayerScore ps = scoreManager.getScore(i);
+				std::string rowString = std::to_string(i + 1) + ". " + ps.name + " - " + std::to_string(ps.score);
+				
+				sf::Text row(rowString, myFont, 24);
+				row.setPosition(250.f, 120.f + (i * 35.f));
+				window.draw(row);
+			}
 		}
 		window.display();
 	}

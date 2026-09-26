@@ -172,3 +172,7 @@ void GameManager::draw(sf::RenderWindow& window, sf::Font& font, int seconds){
 		}
 	}
 }
+
+void GameManager::exportHistory(std::string filename) {
+	historial.exportToFile(filename);
+}

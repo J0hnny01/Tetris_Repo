@@ -1,5 +1,6 @@
 #ifndef HISTORYLIST_H
 #define HISTORYLIST_H
+#include <string>
 
 class StateNode {
 public:
@@ -27,6 +28,9 @@ public:
 	StateNode* getFirstState();
 	StateNode* getNextState(); 
 	void truncateFuture(); 
+	void clear(); 
+	void exportToFile(std::string filename);
+	void loadFromFile(std::string filename);
 };
 
 #endif

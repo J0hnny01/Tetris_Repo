@@ -29,6 +29,7 @@ public:
 	void draw(sf::RenderWindow& window, sf::Font& font, int seconds);
 	bool isGameOver(); 
 	int getScore();
+	void exportHistory(std::string filename);
 };
 
 #endif
