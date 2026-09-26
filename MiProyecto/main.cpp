@@ -36,7 +36,7 @@ int main(){
 	sf::Text gameOverText("Perdiste!", myFont, 60);
 	gameOverText.setPosition(300.f, 50.f);
 	gameOverText.setFillColor(sf::Color::Red);
-	GameManager gameManager;
+	GameManager* gameManager = new GameManager();
 	ScoreManager scoreManager("puntajes.txt");
 	sf::Clock gameClock;
 	sf::Clock totalTimeClock;
@@ -54,7 +54,7 @@ int main(){
 				window.close();		
 			}	
 			if (event.type == sf::Event::KeyPressed && currentState == GAME) {
-				gameManager.processInput(event.key.code);
+				gameManager->processInput(event.key.code);
 			}
 			else if(currentState == LOGIN && event.type == sf::Event::TextEntered){
 				if (event.text.unicode == 8 && playerName.length() > 0) {
@@ -80,7 +80,7 @@ int main(){
 						
 						if (bounds.contains(static_cast<float>(mousePos.x), static_cast<float>(mousePos.y))) {
 							PlayerScore ps = scoreManager.getScore(i);
-							if (ps.replayFile != "" && gameManager.loadReplay(ps.replayFile)) {
+							if (ps.replayFile != "" && gameManager->loadReplay(ps.replayFile)) {
 								currentState = REPLAY;
 								autoPlayReplay = true; 
 								replayClock.restart(); 
@@ -91,11 +91,11 @@ int main(){
 			}
 			else if (currentState == REPLAY && event.type == sf::Event::KeyPressed) {
 				if (event.key.code == sf::Keyboard::Right) {
-					gameManager.stepReplay(1);
+					gameManager->stepReplay(1);
 					autoPlayReplay = false; 
 				}
 				else if (event.key.code == sf::Keyboard::Left) {
-					gameManager.stepReplay(-1);
+					gameManager->stepReplay(-1);
 					autoPlayReplay = false;
 				}
 				else if (event.key.code == sf::Keyboard::Space) {
@@ -106,6 +106,8 @@ int main(){
 		if(currentState == MENU){
 			if(playButton.isPressed(window)){
 				currentState = LOGIN;
+				delete gameManager;
+				gameManager = new GameManager();
 				gameClock.restart();
 				totalTimeClock.restart(); 
 				secondsPlayed = 0;	
@@ -125,17 +127,17 @@ int main(){
 			}
 		}
 		else if (currentState == GAME) {
-			if (!gameManager.isGameOver()) {
+			if (!gameManager->isGameOver()) {
 				if (gameClock.getElapsedTime().asSeconds() >= fallDelay) {
-					gameManager.updateGravity();
+					gameManager->updateGravity();
 					gameClock.restart();
 				}
 				secondsPlayed = static_cast<int>(totalTimeClock.getElapsedTime().asSeconds());
 			}else {
 				if (!scoreSaved) {
-					std::string replayFile = scoreManager.registerScore(playerName, gameManager.getScore(), 2);
+					std::string replayFile = scoreManager.registerScore(playerName, gameManager->getScore(), 2);
 					if (replayFile != "") {
-						gameManager.exportHistory(replayFile);
+						gameManager->exportHistory(replayFile);
 					}
 					scoreSaved = true;
 				}
@@ -144,13 +146,14 @@ int main(){
 					playerName = "";
 					nameInputText.setString("");
 					scoreSaved = false;
-					gameManager = GameManager();
+					delete gameManager;
+					gameManager = new GameManager();
 				}
 			}
 		}
 		else if (currentState == REPLAY) {
 			if (autoPlayReplay && replayClock.getElapsedTime().asSeconds() >= 0.3f) {
-				gameManager.stepReplay(1);
+				gameManager->stepReplay(1);
 				replayClock.restart();
 			}
 			if (buttonBack.isPressed(window)) {
@@ -162,8 +165,8 @@ int main(){
 			playButton.draw(window);
 			scoreBoardButton.draw(window);
 		}else if(currentState == GAME) {
-			gameManager.draw(window, myFont, secondsPlayed); 
-			if(gameManager.isGameOver()){
+			gameManager->draw(window, myFont, secondsPlayed); 
+			if(gameManager->isGameOver()){
 				backAfterGameOverButton.draw(window);
 				window.draw(gameOverText);
 			}
@@ -186,11 +189,12 @@ int main(){
 			}
 		}
 		else if (currentState == REPLAY) {
-			gameManager.drawReplay(window, myFont);
+			gameManager->drawReplay(window, myFont);
 			buttonBack.draw(window);
 		}
 		window.display();
 	}
 	
+	delete gameManager;
 	return 0;
 }
