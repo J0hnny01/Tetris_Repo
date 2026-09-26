@@ -30,6 +30,9 @@ public:
 	bool isGameOver(); 
 	int getScore();
 	void exportHistory(std::string filename);
+	bool loadReplay(std::string filename);
+	void stepReplay(int direction);
+	void drawReplay(sf::RenderWindow& window, sf::Font& font);
 };
 
 #endif

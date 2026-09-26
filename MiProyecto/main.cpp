@@ -9,7 +9,8 @@ enum GameStates{
 	MENU,
 	GAME,
 	SCOREBOARD,
-	LOGIN
+	LOGIN,
+	REPLAY
 };
 
 int main(){
@@ -22,6 +23,7 @@ int main(){
 	Button playButton(300, 250, 200, 50, "Jugar", myFont, sf::Color::Blue);
 	Button scoreBoardButton(300, 330, 200, 50, "Puntajes", myFont, sf::Color::Red);
 	Button backAfterGameOverButton(300, 300, 200, 50, "Volver", myFont, sf::Color::Blue);
+	Button buttonBack(575, 50, 200, 50, "Volver", myFont, sf::Color::Blue);
 	std::string playerName = "";
 	sf::Text promptText("Ingresa tu nombre y presiona ENTER:", myFont, 24);
 	promptText.setPosition(200.f, 200.f);
@@ -38,10 +40,12 @@ int main(){
 	ScoreManager scoreManager("puntajes.txt");
 	sf::Clock gameClock;
 	sf::Clock totalTimeClock;
+	sf::Clock replayClock;
 	float fallDelay = 0.5f; 
 	GameStates currentState = MENU;
 	int secondsPlayed = 0;
 	bool scoreSaved = false;
+	bool autoPlayReplay = true;
 	while (window.isOpen())
 	{
 		sf::Event event;
@@ -66,6 +70,37 @@ int main(){
 					playerName += static_cast<char>(event.text.unicode);
 				}
 				nameInputText.setString(playerName);
+			}
+			else if (currentState == SCOREBOARD && event.type == sf::Event::MouseButtonPressed) {
+				if (event.mouseButton.button == sf::Mouse::Left) {
+					sf::Vector2i mousePos = sf::Mouse::getPosition(window);
+					
+					for (int i = 0; i < scoreManager.getScoreCount(); i++) {
+						sf::FloatRect bounds(250.f, 120.f + (i * 35.f), 300.f, 30.f);
+						
+						if (bounds.contains(static_cast<float>(mousePos.x), static_cast<float>(mousePos.y))) {
+							PlayerScore ps = scoreManager.getScore(i);
+							if (ps.replayFile != "" && gameManager.loadReplay(ps.replayFile)) {
+								currentState = REPLAY;
+								autoPlayReplay = true; 
+								replayClock.restart(); 
+							}
+						}
+					}
+				}
+			}
+			else if (currentState == REPLAY && event.type == sf::Event::KeyPressed) {
+				if (event.key.code == sf::Keyboard::Right) {
+					gameManager.stepReplay(1);
+					autoPlayReplay = false; 
+				}
+				else if (event.key.code == sf::Keyboard::Left) {
+					gameManager.stepReplay(-1);
+					autoPlayReplay = false;
+				}
+				else if (event.key.code == sf::Keyboard::Space) {
+					autoPlayReplay = !autoPlayReplay;
+				}
 			}
 		}
 		if(currentState == MENU){
@@ -113,6 +148,15 @@ int main(){
 				}
 			}
 		}
+		else if (currentState == REPLAY) {
+			if (autoPlayReplay && replayClock.getElapsedTime().asSeconds() >= 0.3f) {
+				gameManager.stepReplay(1);
+				replayClock.restart();
+			}
+			if (buttonBack.isPressed(window)) {
+				currentState = SCOREBOARD; 
+			}
+		}
 		window.clear(sf::Color::Black);
 		if(currentState == MENU){
 			playButton.draw(window);
@@ -132,11 +176,18 @@ int main(){
 			for (int i = 0; i < scoreManager.getScoreCount(); i++) {
 				PlayerScore ps = scoreManager.getScore(i);
 				std::string rowString = std::to_string(i + 1) + ". " + ps.name + " - " + std::to_string(ps.score);
-				
+				buttonBack.draw(window);
 				sf::Text row(rowString, myFont, 24);
 				row.setPosition(250.f, 120.f + (i * 35.f));
 				window.draw(row);
 			}
+			if(buttonBack.isPressed(window)){
+				currentState = MENU;
+			}
+		}
+		else if (currentState == REPLAY) {
+			gameManager.drawReplay(window, myFont);
+			buttonBack.draw(window);
 		}
 		window.display();
 	}

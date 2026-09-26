@@ -344,3 +344,7 @@ Piece::Piece(int pieceType) {
 }
 }
 
+int Piece::getRotation() {
+	return currentRotation;
+}
+

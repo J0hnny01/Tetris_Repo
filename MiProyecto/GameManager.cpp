@@ -15,6 +15,7 @@ void GameManager::spawnNewPiece() {
 	if (board.checkCollision(currentPiece)) {
 		gameOver = true;
 	}
+	takeSnap();
 }
 
 bool GameManager::isGameOver(){
@@ -35,15 +36,16 @@ void GameManager::updateGravity() {
 		if (cleanedLines > 0) {
 			score += (cleanedLines * 10);
 		}
-		takeSnap();
 		spawnNewPiece();
+	} else {
+		takeSnap();
 	}
 }
 
 void GameManager::takeSnap() {
 	int matrizFotografia[20][10];
 	board.getSnapshot(matrizFotografia);	
-	historial.saveState(currentPiece.getType(), currentPiece.getX(), currentPiece.getY(), matrizFotografia);
+	historial.saveState(currentPiece.getType(), currentPiece.getX(), currentPiece.getY(), currentPiece.getRotation(), hold.peek(), matrizFotografia);
 }
 
 void GameManager::holdPiece() {
@@ -93,12 +95,13 @@ void GameManager::processInput(sf::Keyboard::Key key) {
 	break;
 	
 	case sf::Keyboard::Z: 
-		// TODO el ctrl z básicamente
+		// TODO el ctrl z bsicamente
 		break;
 	
 	default:
 		break;
 	}
+	takeSnap();
 }
 
 void GameManager::draw(sf::RenderWindow& window, sf::Font& font, int seconds){
@@ -175,4 +178,87 @@ void GameManager::draw(sf::RenderWindow& window, sf::Font& font, int seconds){
 
 void GameManager::exportHistory(std::string filename) {
 	historial.exportToFile(filename);
+}
+
+bool GameManager::loadReplay(std::string filename) {
+	historial.loadFromFile(filename);
+	historial.getFirstState();
+	return historial.getCurrentState() != nullptr;
+}
+
+void GameManager::stepReplay(int direction) {
+	if (direction == 1) historial.getNextState(); 
+	else if (direction == -1) historial.undo();   
+}
+
+void GameManager::drawReplay(sf::RenderWindow& window, sf::Font& font) {
+	StateNode* frame = historial.getCurrentState();
+	if (!frame) return;
+	float offsetX = 250.f;
+	float offsetY = 0.f; 
+	for (int r = 0; r < 20; r++) {
+		for (int c = 0; c < 10; c++) {
+			sf::RectangleShape cell(sf::Vector2f(30.f, 30.f));
+			cell.setPosition(offsetX + c * 30.f, offsetY + r * 30.f);
+			cell.setFillColor(sf::Color::Black);
+			cell.setOutlineThickness(1.f);
+			cell.setOutlineColor(sf::Color(50, 50, 50));
+			window.draw(cell);
+		}
+	}
+	for (int r = 0; r < 20; r++) {
+		for (int c = 0; c < 10; c++) {
+			int cellValue = frame->boardSnapshot[r][c];
+			if (cellValue != 0) { 
+				Piece tempColorPiece(cellValue - 1);
+				sf::RectangleShape block(sf::Vector2f(30.f, 30.f));
+				block.setPosition(offsetX + c * 30.f, offsetY + r * 30.f);
+				block.setFillColor(tempColorPiece.getColor());
+				block.setOutlineThickness(1.f);
+				block.setOutlineColor(sf::Color(50, 50, 50));
+				window.draw(block);
+			}
+		}
+	}
+	Piece tempPiece(frame->pieceType);
+	for (int i = 0; i < frame->pieceRotation; i++) {
+		tempPiece.rotateRight();
+	}
+	for(int r = 0; r < 4; r++){
+		for(int c = 0; c < 4; c++){
+			if(tempPiece.getBlock(r, c) != 0){
+				sf::RectangleShape block(sf::Vector2f(30.f, 30.f));
+				block.setPosition(offsetX + (frame->pieceX + c) * 30.f, offsetY + ((frame->pieceY + r) * 30.f) - 30.f); 
+				block.setFillColor(tempPiece.getColor());
+				block.setOutlineThickness(1.f);
+				block.setOutlineColor(sf::Color(50, 50, 50));
+				window.draw(block);
+			}
+		}
+	}
+	if (frame->holdPieceType != -1) {
+		Piece tempHold(frame->holdPieceType);
+		sf::RectangleShape blockUI(sf::Vector2f(30.f, 30.f));
+		blockUI.setFillColor(tempHold.getColor());
+		blockUI.setOutlineThickness(-1.f);
+		blockUI.setOutlineColor(sf::Color(50, 50, 50)); 
+		for (int r = 0; r < 4; r++) {
+			for (int c = 0; c < 4; c++) {
+				if (tempHold.getBlock(r, c) != 0) {
+					float x = 50.f + (c * 30.f);
+					float y = 100.f + (r * 30.f);
+					blockUI.setPosition(x, y);
+					window.draw(blockUI);
+				}
+			}
+		}
+	}
+	sf::Text info("MODO REPETICION", font, 24);
+	info.setPosition(20.f, 50.f);
+	info.setFillColor(sf::Color::Magenta);
+	window.draw(info);
+	
+	sf::Text controls("ESPACIO: Play/Pausa\nFLECHAS: Adelante/Atras", font, 18);
+	controls.setPosition(20.f, 90.f);
+	window.draw(controls);
 }

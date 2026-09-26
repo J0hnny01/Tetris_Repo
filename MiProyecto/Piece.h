@@ -25,6 +25,7 @@ public:
 	sf::Color getColor();
 	void draw(sf::RenderWindow& window);
 	int getType();
+	int getRotation();
 };
 
 #endif

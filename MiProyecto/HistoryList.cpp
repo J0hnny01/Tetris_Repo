@@ -5,6 +5,8 @@ StateNode::StateNode() {
 	pieceType = 0;
 	pieceX = 0;
 	pieceY = 0;
+	pieceRotation = 0;
+	holdPieceType = -1;
 	prev = nullptr;
 	next = nullptr;
 	for (int r = 0; r < 20; r++) {
@@ -41,7 +43,7 @@ void HistoryList::truncateFuture() {
 	tail = current;
 }
 
-void HistoryList::saveState(int pieceType, int pieceX, int pieceY, int currentBoard[20][10]) {
+void HistoryList::saveState(int pieceType, int pieceX, int pieceY, int pieceRotation, int holdType, int currentBoard[20][10]) {
 	if (current != tail) {
 		truncateFuture();
 	}
@@ -49,6 +51,8 @@ void HistoryList::saveState(int pieceType, int pieceX, int pieceY, int currentBo
 	newNode->pieceType = pieceType;
 	newNode->pieceX = pieceX;
 	newNode->pieceY = pieceY;
+	newNode->pieceRotation = pieceRotation;
+	newNode->holdPieceType = holdType;
 	for (int r = 0; r < 20; r++) {
 		for (int c = 0; c < 10; c++) {
 			newNode->boardSnapshot[r][c] = currentBoard[r][c];
@@ -85,6 +89,10 @@ StateNode* HistoryList::getFirstState() {
 	return current;
 }
 
+StateNode* HistoryList::getCurrentState() {
+	return current;
+}
+
 StateNode* HistoryList::getNextState() {
 	if (current != nullptr && current->next != nullptr) {
 		current = current->next;
@@ -109,7 +117,7 @@ void HistoryList::exportToFile(std::string filename) {
 	if (!file.is_open()) return;
 	StateNode* temp = head;
 	while (temp != nullptr) {
-		file << temp->pieceType << " " << temp->pieceX << " " << temp->pieceY << "\n";
+		file << temp->pieceType << " " << temp->pieceX << " " << temp->pieceY << " " << temp->pieceRotation << " " << temp->holdPieceType << "\n";
 		for (int r = 0; r < 20; r++) {
 			for (int c = 0; c < 10; c++) {
 				file << temp->boardSnapshot[r][c] << " ";
@@ -125,15 +133,15 @@ void HistoryList::loadFromFile(std::string filename) {
 	clear(); 
 	std::ifstream file(filename);
 	if (!file.is_open()) return;
-	int pType, pX, pY;
-	while (file >> pType >> pX >> pY) {
+	int pType, pX, pY, pRot, pHold;
+	while (file >> pType >> pX >> pY >> pRot >> pHold) {
 		int tempBoard[20][10];
 		for (int r = 0; r < 20; r++) {
 			for (int c = 0; c < 10; c++) {
 				file >> tempBoard[r][c];
 			}
 		}
-		saveState(pType, pX, pY, tempBoard); 
+		saveState(pType, pX, pY, pRot, pHold, tempBoard);
 	}
 	file.close();
 	current = head; 

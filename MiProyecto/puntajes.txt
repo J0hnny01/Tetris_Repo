@@ -1,2 +1,2 @@
-johnny 40 replay_johnny_40.txt
-d 0 replay_d_0.txt
+johnn 60 replay_johnn_60.txt
+k 0 replay_k_0.txt
