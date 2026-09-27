@@ -5,6 +5,7 @@
 #include <cstdlib> 
 #include <ctime>
 
+
 enum GameStates{   
 	MENU,
 	GAME,
@@ -17,7 +18,7 @@ int main(){
 	srand(time(NULL));
 	sf::RenderWindow window(sf::VideoMode(800, 600), "Main");	
 	sf::Font myFont;
-	if (!myFont.loadFromFile("C:/Users/johnn/Desktop/tetris/Tetris_Repo/MiProyecto/AldotheApache.ttf")) {
+	if (!myFont.loadFromFile("AldotheApache.ttf")) {
 
 	}
 	Button playButton(300, 250, 200, 50, "Jugar", myFont, sf::Color::Blue);
@@ -35,6 +36,9 @@ int main(){
 	scoreboardTitle.setPosition(250.f, 50.f);
 	scoreboardTitle.setFillColor(sf::Color::Cyan);
 	sf::Text gameOverText("Perdiste!", myFont, 60);
+	sf::Text controlsText("Controles:\nFlechas: Mover\nArriba: Rotar\nAbajo: Bajar rapido\nH: Hold (Reserva)\nENTER: Pausa", myFont, 20);
+	controlsText.setPosition(50.f, 400.f);
+	controlsText.setFillColor(sf::Color::White);
 	gameOverText.setPosition(300.f, 50.f);
 	gameOverText.setFillColor(sf::Color::Red);
 	GameManager* gameManager = new GameManager();
@@ -195,6 +199,7 @@ int main(){
 			scoreBoardButton.draw(window);
 		}else if(currentState == GAME) {
 			gameManager->draw(window, myFont, secondsPlayed); 
+			window.draw(controlsText);
 			if(gameManager->isGameOver()){
 				backAfterGameOverButton.draw(window);
 				window.draw(gameOverText);
