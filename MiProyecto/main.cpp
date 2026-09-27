@@ -49,6 +49,9 @@ int main(){
 	bool autoPlayReplay = true;
 	bool isPaused = false;
 	float accumulatedTime = 0.f;
+	Button btnBubble(575, 120, 200, 50, "Usar Bubble", myFont, sf::Color::Magenta);
+	Button btnMerge(575, 180, 200, 50, "Usar Merge", myFont, sf::Color::Cyan);
+	int currentSortAlgo = 2; 
 	while (window.isOpen())
 	{
 		sf::Event event;
@@ -133,10 +136,11 @@ int main(){
 			if (backAfterGameOverButton.isPressed(window)) {
 				currentState = MENU;
 			}
-		}
-		else if (currentState == SCOREBOARD) {
-			if (backAfterGameOverButton.isPressed(window)) {
-				currentState = MENU;
+			if (btnBubble.isPressed(window)) {
+				currentSortAlgo = 1;
+			}
+			if (btnMerge.isPressed(window)) {
+				currentSortAlgo = 2;
 			}
 		}
 		else if (currentState == GAME) {
@@ -158,7 +162,7 @@ int main(){
 				}
 			}else {
 				if (!scoreSaved) {
-					std::string replayFile = scoreManager.registerScore(playerName, gameManager->getScore(), 2);
+					std::string replayFile = scoreManager.registerScore(playerName, gameManager->getScore(), currentSortAlgo);
 					if (replayFile != "") {
 						gameManager->exportHistory(replayFile);
 					}
@@ -212,6 +216,11 @@ int main(){
 				buttonBack.draw(window);
 				sf::Text row(rowString, myFont, 24);
 				row.setPosition(250.f, 120.f + (i * 35.f));
+				btnBubble.draw(window);
+				btnMerge.draw(window);
+				sf::Text algoText("Activo: " + std::string(currentSortAlgo == 1 ? "Burbuja" : "Merge"), myFont, 20);
+				algoText.setPosition(575.f, 250.f);
+				window.draw(algoText);
 				window.draw(row);
 			}
 			if(buttonBack.isPressed(window)){
